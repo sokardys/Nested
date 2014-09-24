@@ -111,7 +111,9 @@ if (!Object.keys) {
             this.matrix = {};
             this.gridrow = new Object;
 
-            var calcWidth = !this.options.centered ? this.box.innerWidth() : $(window).width();
+            // var calcWidth = !this.options.centered ? this.box.innerWidth() : $(window).width();
+
+            var calcWidth = this.box.innerWidth();
 
             this.columns = Math.max(this.options.minColumns, parseInt(calcWidth / (this.options.minWidth + this.options.gutter)) + 1);
 
@@ -285,8 +287,8 @@ if (!Object.keys) {
             var direction = !method ? "append" : "prepend";
 
             // Width & height
-            var width = $box.width();
-            var height = $box.height();
+            var width = parseInt($box.attr("data-width"));
+            var height = parseInt($box.attr("data-height"));
 
             // Calculate row and col
             var col = Math.ceil(width / (this.options.minWidth + this.options.gutter));
@@ -510,7 +512,7 @@ if (!Object.keys) {
 
         refresh: function(options) {
 
-        	options = options || this.options;
+            options = options || this.options;
 
             this.options = $.extend(true, {}, $.Nested.settings, options);
             this.elements = [];
@@ -522,13 +524,13 @@ if (!Object.keys) {
 
         destroy: function() {
 
-			var container = this;
+            var container = this;
 
             $(window).unbind("resize", function () {
                 container.resize();
             });
 
-	        // unbind the resize event
+            // unbind the resize event
             $els = this.box.find(this.options.selector);
             $($els).removeClass('nested-moved').removeAttr('style data-box data-width data-x data-y').removeData();
 
@@ -538,36 +540,36 @@ if (!Object.keys) {
     }
 
 
-	var methods =
-	{
-		refresh: function(options) {
-			return this.each(function(){
-				var $this=$(this);
-				var nested = $this.data('nested');
+    var methods =
+    {
+        refresh: function(options) {
+            return this.each(function(){
+                var $this=$(this);
+                var nested = $this.data('nested');
 
-				nested.refresh(options);
-			});
-		},
+                nested.refresh(options);
+            });
+        },
 
-		destroy: function() {
-			return this.each(function(){
-				var $this=$(this);
-				var nested = $this.data('nested');
+        destroy: function() {
+            return this.each(function(){
+                var $this=$(this);
+                var nested = $this.data('nested');
 
-				nested.destroy();
-			});
-		}
-	};
+                nested.destroy();
+            });
+        }
+    };
 
 
 
     $.fn.nested = function (options, e) {
 
-		if(methods[options]) {
-			return methods[options].apply(this, Array.prototype.slice.call(arguments, 1));
-		}
+        if(methods[options]) {
+            return methods[options].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
 
-		if (typeof options === 'string') {
+        if (typeof options === 'string') {
             this.each(function () {
                 var container = $.data(this, 'nested');
                 container[options].apply(container, [e]);
