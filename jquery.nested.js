@@ -62,12 +62,13 @@ if (!Object.keys) {
     $.Nested.settings = {
         selector: '.box',
         minWidth: 50,
+        minHeight: 50,
         minColumns: 1,
         gutter: 1,
         centered: false,
         resizeToFit: true, // will resize block bigger than the gap
         resizeToFitOptions: {
-            resizeAny: true // will resize any block to fit the gap         
+            resizeAny: true // will resize any block to fit the gap
         },
         animate: true,
         animationOptions: {
@@ -116,6 +117,7 @@ if (!Object.keys) {
 
             // build columns
             var minWidth = this.options.minWidth;
+            var minHeight = this.options.minHeight;
             var gutter = this.options.gutter;
             var display = "block";
 
@@ -123,12 +125,13 @@ if (!Object.keys) {
 
             $.each($els, function () {
 
-                var dim = parseInt($(this).attr('class').replace(/^.*size([0-9]+).*$/, '$1')).toString().split('');
+                var dim = parseInt($(this).attr('class').replace(/^.*size([0-9]{2}).*$/, '$1')).toString().split('');
+                //Si hacemos parseInt("") -> NaN por eso realizamos esas condiciones.
                 var x = (dim[0] == "N") ? 1 : parseFloat(dim[0]);
                 var y = (dim[1] == "a") ? 1 : parseFloat(dim[1]);
 
                 var currWidth = minWidth * x + gutter * (x - 1);
-                var currHeight = minWidth * y + gutter * (y - 1);
+                var currHeight = minHeight * y + gutter * (y - 1);
 
                 $(this).css({
                     'display': display,
@@ -137,7 +140,10 @@ if (!Object.keys) {
                     'height': currHeight,
                     'top': $(this).position().top,
                     'left': $(this).position().left
-                }).removeClass('nested-moved').attr('data-box', self.idCounter).attr('data-width', currWidth);
+                }).removeClass('nested-moved')
+                    .attr('data-box', self.idCounter)
+                    .attr('data-width', currWidth)
+                    .attr('data-height', currHeight); //Me guardo tambien
 
                 self.idCounter++;
 
@@ -174,7 +180,7 @@ if (!Object.keys) {
             var height = 0;
             var t = parseInt(el['y']);
             var l = parseInt(el['x']);
-            for (var h = 0; h < el['height']; h += (this.options.minWidth + this.options.gutter)) {
+            for (var h = 0; h < el['height']; h += (this.options.minHeight + this.options.gutter)) {
                 for (var w = 0; w < el['width']; w += (this.options.minWidth + this.options.gutter)) {
                     var x = l + w;
                     var y = t + h;
@@ -227,19 +233,19 @@ if (!Object.keys) {
                         if (!box.y) box.y = y;
                         if (!box.x) box.x = x;
                         if (!box.w) box.w = 0;
-                        if (!box.h) box.h = self.options.minWidth;
+                        if (!box.h) box.h = self.options.minHeight;
                         box.w += (box.w) ? (self.options.minWidth + self.options.gutter) : self.options.minWidth;
 
                         var addonHeight = 0;
                         for (var row = 1; row < rowsLeft; row++) {
-                            var z = parseInt(y) + parseInt(row * (self.options.minWidth + self.options.gutter));
+                            var z = parseInt(y) + parseInt(row * (self.options.minHeight + self.options.gutter));
                             if (self.matrix[z] && self.matrix[z][x] == 'false') {
-                                addonHeight += (self.options.minWidth + self.options.gutter);
+                                addonHeight += (self.options.minHeight + self.options.gutter);
                                 self.matrix[z][x] = 'true';
                             } else break;
                         }
 
-                        box.h + (parseInt(addonHeight) / (self.options.minWidth + self.options.gutter) == rowsLeft) ? 0 : parseInt(addonHeight);
+                        box.h + (parseInt(addonHeight) / (self.options.minHeight + self.options.gutter) == rowsLeft) ? 0 : parseInt(addonHeight);
                         box.ready = true;
 
                     } else if (box.ready) {
@@ -284,7 +290,7 @@ if (!Object.keys) {
 
             // Calculate row and col
             var col = Math.ceil(width / (this.options.minWidth + this.options.gutter));
-            var row = Math.ceil(height / (this.options.minWidth + this.options.gutter));
+            var row = Math.ceil(height / (this.options.minHeight + this.options.gutter));
 
             // lock widest box to match minColumns
             if (col > this.options.minColumns) {
@@ -304,7 +310,7 @@ if (!Object.keys) {
                 for (var column = 0; column < (this.columns - col); column++) {
 
                     // Add default empty matrix, used to calculate and update matrix for each box
-                    matrixY = gridy * (this.options.minWidth + this.options.gutter);
+                    matrixY = gridy * (this.options.minHeight + this.options.gutter); //TODO dudando
                     this._addMatrixRow(matrixY);
 
                     var fits = true;
@@ -337,8 +343,8 @@ if (!Object.keys) {
                             }
                         }
 
-                        // Push to elements array
-                        this._pushItem($box, column * (this.options.minWidth + this.options.gutter), gridy * (this.options.minWidth + this.options.gutter), width, height, col, row, direction);
+                        // Push to elements array //TODO dudando
+                        this._pushItem($box, column * (this.options.minWidth + this.options.gutter), gridy * (this.options.minHeight + this.options.gutter), width, height, col, row, direction);
                         return;
                     }
                 }
@@ -420,10 +426,10 @@ if (!Object.keys) {
                 $currLeft = $(value['$el']).position().left;
                 $currTop = $(value['$el']).position().top;
                 $currWidth = $(value['$el']).width();
-                $currHeight = $(value['$el']).width();
+                $currHeight = $(value['$el']).height();
 
                 value['$el'].attr('data-y', $currTop).attr('data-x', $currLeft);
-                
+
                 //if animate and queue
                 if (animate && queue && ($currLeft != value['x'] || $currTop != value['y'])) {
                     setTimeout(function () {
@@ -501,11 +507,11 @@ if (!Object.keys) {
                 this._isResizing = false;
             }
         },
-      
+
         refresh: function(options) {
-        	
+
         	options = options || this.options;
-        
+
             this.options = $.extend(true, {}, $.Nested.settings, options);
             this.elements = [];
             this._isResizing = false;
@@ -513,22 +519,22 @@ if (!Object.keys) {
             // build box dimensions
             this._setBoxes();
         },
-        
+
         destroy: function() {
-			
+
 			var container = this;
 
             $(window).unbind("resize", function () {
                 container.resize();
             });
-	        
+
 	        // unbind the resize event
             $els = this.box.find(this.options.selector);
             $($els).removeClass('nested-moved').removeAttr('style data-box data-width data-x data-y').removeData();
-            
+
             this.box.removeAttr("style").removeData();
         }
-        
+
     }
 
 
@@ -538,29 +544,29 @@ if (!Object.keys) {
 			return this.each(function(){
 				var $this=$(this);
 				var nested = $this.data('nested');
-				
+
 				nested.refresh(options);
 			});
 		},
-		
+
 		destroy: function() {
 			return this.each(function(){
 				var $this=$(this);
 				var nested = $this.data('nested');
-				
+
 				nested.destroy();
 			});
 		}
 	};
-	
-	
+
+
 
     $.fn.nested = function (options, e) {
 
 		if(methods[options]) {
 			return methods[options].apply(this, Array.prototype.slice.call(arguments, 1));
-		}        
-		
+		}
+
 		if (typeof options === 'string') {
             this.each(function () {
                 var container = $.data(this, 'nested');

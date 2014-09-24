@@ -46,24 +46,24 @@
 <a class="btn" id="append">Append</a>
 
 <script type="text/javascript" >
-  
-  $(function() { 
-   
-    $('#container').nested(); 
-    
+
+  $(function() {
+
+    $('#container').nested({minHeight: 25});
+
     $('#prepend').click(function(){
       var boxes = makeBoxes();
       $('#container').prepend(boxes).nested('prepend',boxes);
     })
     $('#append').click(function(){
       var boxes = makeBoxes();
-      $('#container').append(boxes).nested('append',boxes);     
+      $('#container').append(boxes).nested('append',boxes);
     })
 
   });
-  
-  
+
+
 </script>
-  
+
 </body>
-</html>    
+</html>
